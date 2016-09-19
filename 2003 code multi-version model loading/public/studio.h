@@ -1412,17 +1412,21 @@ inline void Studio_ConvertStudioHdrToNewVersion( studiohdr_t *pStudioHdr )
 		return;
 	}
 
-	if ( version <= 36 )
+	if ( version <= 31 )
 	{
-		Q_memmove( (void *)&pStudioHdr->numseq, (void *)&pStudioHdr->numanimgroups, (size_t)((byte *)pStudioHdr->unused - (byte *)&pStudioHdr->numseq) );
+		pStudioHdr->version = STUDIO_VERSION;
 
-		pStudioHdr->numanimgroups = 0;
-		pStudioHdr->animgroupindex = 0;
+		for ( int i = 0; i < pStudioHdr->numseq; i++ )
+		{
+			mstudioseqdesc_t *pSeqdesc = (mstudioseqdesc_t *)pStudioHdr->pSeqdesc( i );
+			pSeqdesc->numiklocks = 0;
+		}
+	}
 
-		pStudioHdr->numbonedescs = 0;
-		pStudioHdr->bonedescindex = 0;
-
-		Studio_ConvertSeqDescsToNewVersion( pStudioHdr );
+	if ( version <= 32 )
+	{
+		pStudioHdr->version = STUDIO_VERSION;
+		pStudioHdr->numhitboxsets = 0;
 	}
 
 	// Slam all bone contents to SOLID for versions <= 35
@@ -1443,6 +1447,19 @@ inline void Studio_ConvertStudioHdrToNewVersion( studiohdr_t *pStudioHdr )
 		// Don't remove this!!!!  This code has to be inspected everytime the studio format changes.
 		COMPILE_TIME_ASSERT( STUDIO_VERSION == 37 ); //  put this to make sure this code is updated upon changing version.
 		pStudioHdr->version = STUDIO_VERSION;
+	}
+
+	if ( version <= 36 )
+	{
+		Q_memmove( (void *)&pStudioHdr->numseq, (void *)&pStudioHdr->numanimgroups, (size_t)((byte *)pStudioHdr->unused - (byte *)&pStudioHdr->numseq) );
+
+		pStudioHdr->numanimgroups = 0;
+		pStudioHdr->animgroupindex = 0;
+
+		pStudioHdr->numbonedescs = 0;
+		pStudioHdr->bonedescindex = 0;
+
+		Studio_ConvertSeqDescsToNewVersion( pStudioHdr );
 	}
 }
 
